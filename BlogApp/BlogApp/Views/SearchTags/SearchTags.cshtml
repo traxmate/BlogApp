@@ -1,0 +1,64 @@
+﻿@using BlogApp.Models
+@model SearchTagsModel
+@{
+	ViewBag.Title = $"Browse posts containing \"{Model.Tags}\"";
+}
+
+<h2>Posts containing the tag(s) "@Model.Tags"</h2>
+
+@* List with sorting options.
+*@
+<strong>
+	Order By:
+</strong>
+<ul class="horizontal-list">
+	<li>
+		@Html.ActionLink("Date", "OrderBy", new { @tags = Model.Tags, @sort = 0 }, null)
+	</li>
+	<li>
+		@Html.ActionLink("Alphabetical", "OrderBy", new { @tags = Model.Tags, @sort = 2 }, null)
+	</li>
+	<li>
+		@Html.ActionLink("Blog", "OrderBy", new { @tags = Model.Tags, @sort = 4 }, null)
+	</li>
+	<li>
+		@Html.ActionLink("Author", "OrderBy", new { @tags = Model.Tags, @sort = 5 }, null)
+	</li>
+</ul>
+
+<strong>
+	Filter Posts:
+</strong>
+<ul class="horizontal-list">
+	<li title="Will show all posts that has at least one of the tags.">
+		@Html.ActionLink("Any tag", "Filter", "SearchTags", new { @tags = Model.Tags, @filter = 0 }, null)
+	</li>
+	<li title="Only posts that have all the tags will be shown.">
+		@Html.ActionLink("All tags", "Filter", "SearchTags", new { @tags = Model.Tags, @filter = 1 }, null)
+	</li>
+</ul>
+
+@* Display every post found.
+*@
+@foreach (var post in Model.PostsFound)
+{
+	var user = ApplicationDbContext.GetUserFromId(post.Blog.Author);
+
+	<div class="panel panel-body">
+		<div class="pull-left">
+			<h3>
+				<a href="@Url.Action("ViewBlog", "Blogs", new { @blogId = post.Blog.Id })#@post.Id">@post.Title</a>
+			</h3>
+		</div>
+		<div class="pull-right">
+			<p>
+				<strong>From Blog: </strong>
+				@Html.ActionLink(post.Blog.Title, "ViewBlog", "Blogs", new { @blogId = post.Blog.Id }, null)
+			</p>
+			<p>
+				<strong>Created: </strong>
+				@post.Date.ToLongDateString() by @user.GetName()
+			</p>
+		</div>
+	</div>
+}

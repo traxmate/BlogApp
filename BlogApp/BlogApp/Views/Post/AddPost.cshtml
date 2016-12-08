@@ -1,0 +1,26 @@
+﻿@using Microsoft.AspNet.Identity
+@model BlogApp.Models.Blog
+@{
+    ViewBag.Title = "AddPost";
+}
+
+<form method="post" action="@Url.Action("AddPost", "Post", new { @blogId = Model.Id, @Author = User.Identity.GetUserId() })">
+	<div class="form-group">
+		<label class="control-label" for="Title">Title</label>
+		<input type="text" class="form-control" id="Title" name="Title" placeholder="Title">
+	</div>
+	<div class="form-group">
+		<label class="control-label" for="Body">Message</label>
+		<textarea id="Body" name="Body" class="form-control" placeholder="Message" rows="5"></textarea>
+	</div>
+	<div class="form-group">
+		<label class="control-label" for="tags">Tags (Separated by spaces)</label>
+		<input type="text" class="form-control" id="tags" name="tags" placeholder="Tags">
+		<div class="text-info">
+			You can have as many tags as you want but only the 10 first will be displayed.
+		</div>
+	</div>
+	<div class="form-group">
+		<input type="submit" class="btn btn-success" value="Post" />
+	</div>
+</form>

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using BlogApp.Models;
 
 namespace BlogApp.Controllers
 {
@@ -10,20 +11,19 @@ namespace BlogApp.Controllers
 	{
 		public ActionResult Index()
 		{
-			return View();
+			var model = new HomeViewModel();
+			return View(model);
 		}
 
-		public ActionResult About()
+        public ActionResult BrowseBlogs()
+        {
+            var Browse = new BrowsePosts();
+            return View(Browse);
+        }
+        
+        [Authorize(Roles = "Admin")]
+		public ActionResult Manage()
 		{
-			ViewBag.Message = "Your application description page.!";
-
-			return View();
-		}
-
-		public ActionResult Contact()
-		{
-			ViewBag.Message = "Your contact page.";
-
 			return View();
 		}
 	}

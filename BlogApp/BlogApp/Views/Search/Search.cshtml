@@ -1,0 +1,68 @@
+﻿@using BlogApp.Models
+@model SearchModel
+@{
+	ViewBag.Title = $"Searching for \"{Model.SearchTerm}\"";
+}
+
+@if (Model.BlogsFound.Count() == 0 && Model.PostsFound.Count() == 0 && Model.UsersFound.Count() == 0)
+{
+	<p class="alert alert-info">Found no blogs or posts containing "@Model.SearchTerm"</p>
+}
+else
+{
+	<p class="text-center">
+		@Model.BlogsFound.Count() blogs and @Model.PostsFound.Count() posts found matching "@Model.SearchTerm"
+	</p>
+
+	/* Display all found users.
+	*/
+	<div id="viewUsers">
+		<p>
+			<button type="button" class="btn btn-info" data-toggle="collapse" data-target="#usersFound" aria-expanded="false" aria-controls="usersFound">
+				View found users
+			</button>
+		</p>
+		<div class="list-group collapse" id="usersFound">
+			@foreach (var user in Model.UsersFound)
+			{
+				@:@Html.ActionLink(user.GetName(), "ViewUserBlogs", "Blogs", new { @userId = user.Id }, new { @class = "list-group-item" })
+            }
+		</div>
+	</div>
+
+	/* Display all found blogs and posts.
+	*/
+	<div class="row clearfix">
+		<div class="col-xs-12 col-sm-6">
+			<h2>Blogs found:</h2>
+			@foreach (var blog in Model.BlogsFound)
+			{
+				var user = ApplicationDbContext.GetUserFromId(blog.Author);
+
+			<div class="panel panel-body">
+				<p class="pull-left">
+					@Html.ActionLink(blog.Title, "ViewBlog", "Blogs", new { @blogId = blog.Id, @year = blog.Date.Year, @month = blog.Date.Month }, null)
+				</p>
+				<p class="pull-right"><strong>Created: </strong>@blog.Date.ToLongDateString() by @user.GetName()</p>
+			</div>
+			}
+		</div>
+		<div class="col-xs-12 col-sm-6">
+			<h2>Posts found:</h2>
+			@foreach (var post in Model.PostsFound)
+			{
+				var user = ApplicationDbContext.GetUserFromId(post.Blog.Author);
+
+			<div class="panel panel-body">
+				<p class="pull-left">
+					<a href="@Url.Action("ViewBlog", "Blogs", new { @blogId = post.Blog.Id, @year = post.Date.Year, @month = post.Date.Month })#@post.Id">@post.Title</a>
+				</p>
+				<div class="pull-right text-right">
+					<p><strong>From: </strong>@post.Blog.Title</p>
+					<p><strong>Created: </strong>@post.Date.ToLongDateString() by @user.GetName()</p>
+				</div>
+			</div>
+			}
+		</div>
+	</div>
+}

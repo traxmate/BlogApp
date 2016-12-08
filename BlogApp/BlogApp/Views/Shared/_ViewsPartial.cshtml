@@ -1,0 +1,16 @@
+﻿@model List<BlogApp.Models.Blog>
+    @using Microsoft.AspNet.Identity
+
+@foreach (var blog in Model.OrderByDescending(o=>o.Views))
+{
+    var _db = BlogApp.Models.ApplicationDbContext.Create();
+    var blogAuthor = _db.Users.Where(u => u.Id == blog.Author).FirstOrDefault();
+
+    <div class="well row">
+        
+        <p class="col-md-3">(@blog.Views)Views</p>
+        <h3 class="col-md-4">@Html.ActionLink(@blog.Title,"Details","CreateBlogs",new { id=blog.Id},null)</h3>
+        <p class="col-md-5">@blog.Date by: @blogAuthor.FirstName @blogAuthor.LastName</p>
+        
+    </div>
+}

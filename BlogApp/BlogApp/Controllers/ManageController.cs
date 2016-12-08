@@ -211,9 +211,42 @@ namespace BlogApp.Controllers
             return RedirectToAction("Index", new { Message = ManageMessageId.RemovePhoneSuccess });
         }
 
-        //
-        // GET: /Manage/ChangePassword
-        public ActionResult ChangePassword()
+		// GET: /Manage/ChangeUserInfo
+		public ActionResult ChangeUserInfo()
+		{
+			var user = ApplicationDbContext.GetUserFromId(User.Identity.GetUserId());
+			var model = new ChangeUserInfoModel();
+			model.FirstName = user.FirstName;
+			model.LastName = user.LastName;
+			model.Nickname = user.Nickname;
+
+			return View(model);
+		}
+		// POST: /Manage/ChangeUserInfo
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		public async Task<ActionResult> ChangeUserInfo(ChangeUserInfoModel model)
+		{
+			if (!ModelState.IsValid)
+			{
+				return View(model);
+			}
+
+			var result = await UserManager.ChangeUserInfoAsync(User.Identity.GetUserId(), model);
+			if (result != IdentityResult.Success)
+			{
+				AddErrors(result);
+			}
+			else
+			{
+				ViewBag.SuccessMessage = "User information successfully changed.";
+			}
+			return View(model);
+		}
+
+		//
+		// GET: /Manage/ChangePassword
+		public ActionResult ChangePassword()
         {
             return View();
         }

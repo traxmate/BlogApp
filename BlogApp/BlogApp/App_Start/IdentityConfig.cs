@@ -5,11 +5,13 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web;
+using System.Net.Http;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
+using Microsoft.Owin.Host.SystemWeb;
 using BlogApp.Models;
 
 namespace BlogApp
@@ -40,6 +42,41 @@ namespace BlogApp
         {
         }
 
+		public Task<IdentityResult> ChangeUserInfoAsync(string userId, ChangeUserInfoModel model)
+		{
+			var user = Users.Where(a => a.Id == userId).Single();
+
+			// return fail if password to not match
+			PasswordVerificationResult result = PasswordHasher.VerifyHashedPassword(user.PasswordHash, model.Password);
+			if(result == PasswordVerificationResult.Failed)
+			{
+				return Task.FromResult(IdentityResult.Failed("Please enter password."));
+			}
+
+			var pseudonum = Users.Where(a => a.Nickname == model.Nickname);
+			if (pseudonum.Count() > 0)
+			{
+				if (user.Nickname != pseudonum.Single().Nickname)
+				{
+					return Task.FromResult(IdentityResult.Failed("The Nickname is already in use"));
+				}
+			}
+
+			var db = HttpContext.Current.GetOwinContext().Get<ApplicationDbContext>();
+
+			// Update information
+			{
+				user.FirstName = model.FirstName;
+				user.LastName = model.LastName;
+				user.Nickname = model.Nickname;
+
+				db.Entry(user).State = EntityState.Modified;
+				var message = ApplicationDbContext.SaveChanges(db);	
+			}
+
+			return Task.FromResult(IdentityResult.Success);
+		}
+
         public static ApplicationUserManager Create(IdentityFactoryOptions<ApplicationUserManager> options, IOwinContext context) 
         {
             var manager = new ApplicationUserManager(new UserStore<ApplicationUser>(context.Get<ApplicationDbContext>()));
@@ -54,10 +91,7 @@ namespace BlogApp
             manager.PasswordValidator = new PasswordValidator
             {
                 RequiredLength = 6,
-                RequireNonLetterOrDigit = true,
                 RequireDigit = true,
-                RequireLowercase = true,
-                RequireUppercase = true,
             };
 
             // Configure user lockout defaults

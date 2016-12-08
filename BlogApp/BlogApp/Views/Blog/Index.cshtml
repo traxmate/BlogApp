@@ -1,0 +1,38 @@
+﻿@using Microsoft.AspNet.Identity
+@{
+    ViewBag.Title = "Your Blogs - Overview";
+}
+
+@if (User.Identity.IsAuthenticated)
+{
+    @* View users blogs here.
+    *@
+    <table class="table table-striped table-hover">
+        <tr>
+            <th>Title</th>
+            <th>Description</th>
+            <th>Date Created</th>
+            <th></th>
+        </tr>
+
+        @using (var db = new BlogApp.Models.ApplicationDbContext())
+        {
+            foreach (var blog in BlogApp.Models.Blog.GetBlogsFromUser(User.Identity.GetUserId(), db))
+            {
+                <tr>
+                    <td>@blog.Title</td>
+                    <td>@blog.Body</td>
+                    <td>@blog.Date.ToShortDateString()</td>
+                    <td>@Html.ActionLink("Add Post", "AddPost", "Post", new { @blogId = blog.Id }, null)</td>
+                </tr>
+            }
+        }
+    </table>
+
+    @Html.ActionLink("Create Blog", "Create", "Blog")
+
+}
+else
+{
+    <p class="alert alert-info">Only logged in user may create blogs.</p>
+}

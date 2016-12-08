@@ -1,0 +1,80 @@
+﻿@model BlogApp.Models.BrowseBlogsModel
+@{
+	ViewBag.Title = "Browse Blogs";
+
+}
+
+@section scripts
+{
+	<script src="~/MyScripts/browse-blogs.js"></script>
+}
+
+<div ng-controller="BrowseController as browse" ng-init="tab = 0" ng-cloak>
+	<ul class="horizontal-list">
+		<li>
+			<button type="button" class="btn btn-link" ng-model="byViews" ng-click="tab = 0">
+				Browse blogs by views
+			</button>
+		</li>
+		<li>
+			<button type="button" class="btn btn-link" ng-model="byTags" ng-click="tab = 1">
+				Browse posts by tags
+			</button>
+		</li>
+	</ul>
+
+	<div ng-show="tab == 0">
+		<h4>Top 10 most viewed blogs.</h4>
+
+		<div class="form-group" style="width: 200px;">
+			<label for="tagFilter" class="sr-only">Filter tags</label>
+			<input type="text" class="form-control" id="blogFilter" ng-model="blogFilter" placeholder="Filter blogs" />
+		</div>
+
+		<table class="table table-striped">
+			<tr>
+				<th>
+					<span class="give-pointer" ng-model="views" ng-click="browse.SetOrdering('-Views')">Views</span>
+				</th>
+				<th>
+					<span class="give-pointer" ng-model="blogs" ng-click="browse.SetOrdering('-Title')">Blog</span>
+				</th>
+				<th>
+					<span class="give-pointer" ng-model="date" ng-click="browse.SetOrdering('-LocalLongDate')">Date</span>
+				</th>
+				<th>
+					<span class="give-pointer" ng-model="author" ng-click="browse.SetOrdering('-AuthorName')">Author</span>
+				</th>
+			</tr>
+
+			<tr ng-repeat="blog in browse.blogs | filter: blogFilter | orderBy: browse.orderBy : browse.isReversed | limitTo : 10">
+				<td>
+					{{blog.Views}} views
+				</td>
+				<td>
+					<a href="/Blogs/ViewBlog?blogId={{blog.BlogId}}">{{blog.Title}}</a>
+				</td>
+				<td>
+					{{blog.LocalLongDate}}
+				</td>
+				<td>
+					<a href="/Blogs/ViewUserBlogs?userId={{blog.AuthorId}}">{{blog.AuthorName}}</a>
+				</td>
+			</tr>
+		</table>
+	</div>
+	<div ng-show="tab == 1">
+		<h4>Top 50 most used tags.</h4>
+
+		<div class="form-group" style="width: 200px;">
+			<label for="tagFilter" class="sr-only">Filter tags</label>
+			<input type="text" class="form-control" id="tagFilter" ng-model="tagFilter" placeholder="Filter tags" />
+		</div>
+
+		<div class="tag-container">
+			<a ng-repeat="tag in browse.tags | filter : tagFilter | limitTo : 50" href="/SearchTags/SearchTags?tag={{tag.Key.Name}}" class="btn btn-default tag">
+				{{tag.Key.Name}} ({{tag.Value}} posts)
+			</a>
+		</div>
+	</div>
+</div>

@@ -1,0 +1,88 @@
+﻿@using Microsoft.AspNet.Identity
+@model BlogApp.Models.CommentsViewModel
+@{
+	ICollection<BlogApp.Models.Comment> comments = Model.Comments;
+	int postId = Model.PostId;
+}
+
+<div ng-controller="CommentController as commentCtrl" ng-init="commentCtrl.PostCommentUrl = '@Url.Action("AddComment", "Post")'; commentCtrl.DeleteCommentUrl = '@Url.Action("DeleteComment", "Post")';">
+	<div>
+		<button class="btn-xs btn-primary" type="button" data-toggle="collapse" data-target="#showComments-@postId" aria-expanded="false" aria-controls="showComments-@postId">
+			Show Comments
+		</button>
+		<button class="btn-xs btn-default" type="button" data-toggle="collapse" data-target="#addComment-@postId" aria-expanded="false" aria-controls="addComment-@postId">
+			Add Comment
+		</button>
+	</div>
+
+	<div class="collapse comments-div" id="showComments-@postId" ng-model="commentsDiv">
+		<p></p>
+		@using (var db = new BlogApp.Models.ApplicationDbContext())
+		{
+			if (comments.Count == 0)
+			{
+				<p id="noComments">There are no comments for this post. Be the first to comment!</p>
+			}
+
+			foreach (var comment in comments.OrderByDescending(a => a.Created))
+			{
+				var user = db.Users.Find(comment.AuthorId);
+				var post = db.Posts.Find(comment.PostId);
+
+				bool isAuthor = User.Identity.GetUserId() == comment.AuthorId;
+				bool isPostAuthor = User.Identity.GetUserId() == post.Blog.Author;
+
+				<div class="row well comment-content" id="@comment.Id">
+					<div class="pull-left comment-text">
+						@comment.Body
+						<div class="pull-right text-right">
+
+							By <strong>@user.GetName()</strong><br />
+							@comment.Created.ToLocalTime().ToShortDateString()
+							@comment.Created.ToLocalTime().ToShortTimeString()
+
+						</div>
+					</div>
+
+					@* Allow the author of the comment to delete it.
+					*@
+					@if (isAuthor || isPostAuthor)
+					{
+						<a class="give-pointer" ng-model="deleteComment" ng-click="confirmBox_@comment.Id = !confirmBox_@comment.Id">Delete</a>
+						<div ng-show="confirmBox_@comment.Id" class="confirmBox">
+							<div class="alert alert-warning">
+								Are you sure you want to permanently delete this comment?
+							</div>
+
+							@* Delete comment when yes is clicked. *@
+							<a class="btn btn-default" ng-click="commentCtrl.Delete('@User.Identity.GetUserId()', @comment.Id)">Yes</a>
+
+							@* Hide box when no is clicked on. *@
+							<a class="btn btn-default" ng-click="confirmBox_@comment.Id = !confirmBox_@comment.Id">No</a>
+						</div>
+					}
+				</div>
+			}
+		}
+	</div>
+
+	<form id="addComment-@postId" class="collapse" method="post" action="">
+		<p></p>
+		<div class="form-group">
+			<label class="sr-only" for="comment-@postId">Comment</label>
+			<textarea ng-trim="false" ng-model="commentText" ng-init="commentText = ''" class="form-control" placeholder="Comment" id="comment-@postId" name="body"></textarea>
+			{{commentText.length}} / 512 characters typed.
+		</div>
+
+		@if (Request.IsAuthenticated)
+		{
+			<div class="form-group">
+				<button class="btn btn-success" type="button" role="button" ng-click="commentCtrl.Submit('@User.Identity.GetUserId()', @postId, commentText); commentText = '';" ng-disabled="commentText.length > 512">Comment</button>
+			</div>
+		}
+		else
+		{
+			<p>You must be logged in to post a comment.</p>
+		}
+	</form>
+</div>

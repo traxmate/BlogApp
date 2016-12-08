@@ -1,0 +1,15 @@
+﻿@model List<BlogApp.Models.Post>
+
+@foreach (var t in Model)
+{
+    var _db = BlogApp.Models.ApplicationDbContext.Create();
+    var tagsOwner = _db.Tags.Where(o => o.Name == t.Title).FirstOrDefault();
+
+    <div class="alert-info">
+        <p>Tag @t.Title </p>
+
+        <p>(@t.Views Views)</p>
+
+        <br />
+    </div>
+}

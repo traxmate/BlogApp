@@ -13,6 +13,8 @@ namespace BlogApp
 		{
 			routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
 
+			routes.MapRoute("My Blogs", "Blogs", new { @controller = "CreateBlogs", @action = "Index" });
+
 			routes.MapRoute(
 				name: "Default",
 				url: "{controller}/{action}/{id}",

@@ -1,0 +1,59 @@
+﻿@using Microsoft.AspNet.Identity
+@model IEnumerable<BlogApp.Models.Blog>
+@{
+	/* See if we are the owner if these blogs.
+	*/
+	bool isBlogOwner = ViewBag.IsBlogOwner;
+	string blogOwner = ViewBag.BlogOwner;
+
+	// Set title
+	ViewBag.Title = isBlogOwner ? "My Blogs" : $"Viewing {blogOwner} blogs";
+}
+
+@if (isBlogOwner)
+{
+	<p>
+		<a href="@Url.Action("Create", "CreateBlogs")" class="btn btn-default">Create Blog</a>
+	</p>
+}
+else
+{
+	<div class="text-center">
+		<h3>
+			Viewing @blogOwner blogs.
+		</h3>
+	</div>
+}
+
+<div class="row clearfix">
+	@foreach (var blog in Model)
+	{
+		<div class="col-sm-12 col-md-6">
+			<div class="panel panel-default">
+				<div class="panel-heading clearfix">
+					<span class="pull-left">
+						<a href="@Url.Action("ViewBlog", "Blogs", new { @blogId = blog.Id }, null)">@blog.Title</a>
+					</span>
+					<div class="pull-right">
+						@if (isBlogOwner)
+						{
+							<span>
+								@Html.ActionLink("Add Post", "AddPost", "Post", new { @blogId = blog.Id }, null) |
+								@Html.ActionLink("Edit", "Edit", "CreateBlogs", new { @id = blog.Id }, null) |
+								@Html.ActionLink("Delete", "Delete", "CreateBlogs", new { @id = blog.Id }, null) |
+							</span>
+						}
+						@Html.ActionLink("Details", "Details", "Blogs", new { @blogId = blog.Id }, new { @title = "View a list of this blog posts." })
+					</div>
+				</div>
+				<div class="panel-body">
+					<ul class="horizontal-list">
+						<li>@blog.Posts.Count posts</li>
+						<li>@blog.Views views</li>
+						<li class="pull-right"><strong>Created: </strong>@blog.Date.ToLongDateString()</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	}
+</div>

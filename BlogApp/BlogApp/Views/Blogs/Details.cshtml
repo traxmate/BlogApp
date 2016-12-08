@@ -1,0 +1,36 @@
+﻿@model BlogApp.Models.Blog
+
+@section scripts
+{
+	<script src="~/MyScripts/blog-details.js"></script>
+}
+
+<table class="table" ng-controller="DeleteController">
+	<tr>
+		<th>Post Title</th>
+		<th>Description</th>
+		<th>Created</th>
+		<th>Options</th>
+	</tr>
+	@foreach (var post in Model.Posts)
+	{
+		<tr class="well">
+			<td>@post.Title</td>
+			<td>@post.Body</td>
+			<td>@post.Date.ToLongDateString()</td>
+			<td>
+				@if (ViewBag.IsBlogOwner)
+				{
+					<ul class="horizontal-list">
+						<li>
+							@Html.ActionLink("Edit", "Edit", "Post", new { @postId = post.Id }, null)
+						</li>
+						<li>
+							<a class="give-pointer" id="deletePost" ng-click="DeletePost(@post.Id)">Delete</a>
+						</li>
+					</ul>
+				}
+			</td>
+		</tr>
+	}
+</table>

@@ -1,0 +1,169 @@
+﻿@using Microsoft.AspNet.Identity
+@model BlogApp.Models.ViewBlogModel
+@{
+	ViewBag.Title = $"Viewing blog {Model.Blog.Title}";
+	bool isAuthor = Request.IsAuthenticated && Model.Blog.Author == User.Identity.GetUserId();
+
+	var posts = Model.FilteredPosts != null ? Model.FilteredPosts : Model.Blog.Posts;
+	KeyValuePair<int, int> postsToView = ViewBag.PostsToView;
+}
+
+@if (isAuthor)
+{
+	<p>
+		<a class="btn btn-primary" href="@Url.Action("AddPost", "Post", new { @blogId = Model.Blog.Id }, null)">Add New Post</a>
+	</p>
+}
+
+<div class="row clearfix" ng-model="blogPosts">
+	<div class="col-xs-12 col-sm-8 col-md-10">
+		@foreach (var post in posts.OrderByDescending(a => a.Date).Skip(postsToView.Key).Take(postsToView.Value))
+		{
+			<div class="panel goto" id="@post.Id">
+				<div class="panel-heading">
+					<h3 class="post-title">
+						@post.Title
+					</h3>
+				</div>
+
+				<div class="panel-body">
+					<p>@Html.Raw(post.Body)</p>
+
+					@if (isAuthor)
+					{
+						<ul class="horizontal-list pull-left">
+							<li>
+								@Html.ActionLink("Edit", "Edit", "Post", new { @postId = @post.Id }, null)
+							</li>
+							<li><a href="#">Delete</a></li>
+							<li>|&nbsp;</li>
+						</ul>
+					}
+
+					<div class="pull-left">
+						@foreach (var tag in post.Tags.Take(10))
+						{
+							@Html.ActionLink($"#{tag.Name}", "SearchTags", "SearchTags", new { @tag = tag.Name }, new { @class = "post-tag" })
+						}
+					</div>
+
+					<div class="pull-right">
+						@post.Date.ToLocalTime().ToLongDateString()
+					</div>
+				</div>
+
+				<div class="panel-footer">
+					@Html.Partial("_Comments", new BlogApp.Models.CommentsViewModel() { Comments = post.Comments, PostId = post.Id })
+				</div>
+			</div>
+		}
+	</div>
+
+	<div class="col-xs-12 col-sm-4 col-md-2" id="blogInfo" ng-model="blogInfo">
+		<div class="panel panel-info">
+			<div class="panel-heading text-center">
+				@Model.Blog.Title
+			</div>
+			<div class="panel-body">
+				@Model.Blog.Body
+			</div>
+			<div class="panel-footer">
+				@Html.ActionLink("Show all posts", "ViewBlog", new { @blogId = Model.Blog.Id }, null)
+
+				@{  // Get posts for separate months for each year
+					var postsYearMonth = Model.Blog.Posts
+						.GroupBy(a => new { a.Date.Year, a.Date.Month }, b => b)
+						.GroupBy(a => a.Key.Year)
+						.OrderByDescending(a => a.Key);
+
+					foreach (var year in postsYearMonth)
+					{
+						<button class="btn btn-primary full-width" type="button" data-toggle="collapse" data-target="#y-@year.Key" aria-expanded="false" aria-controls="y-@year.Key">
+							@year.Key
+						</button>
+
+						<div class="collapse in" id="y-@year.Key">
+							@foreach (var month in year)
+							{
+								var date = new DateTime(month.Key.Year, month.Key.Month, 1);
+								<div>
+									@Html.ActionLink($"{date.ToString("MMMM")} ({month.Count()} posts)", "ViewBlog", "Blogs", new { @blogId = Model.Blog.Id, @year = date.Year, @month = date.Month }, null)
+
+									<a class="pull-right" href="#m-@month.Key.Month" role="button" data-toggle="collapse" aria-expanded="true" aria-controls="m-@month.Key.Month">
+										-
+									</a>
+
+									<div class="collapse" id="m-@month.Key.Month">
+										<ul>
+											@foreach (var post in month)
+											{
+												<li>
+													<a href="@Url.Action("ViewBlog", "Blogs", new { @blogId = Model.Blog.Id })#@post.Id">@post.Title</a>
+												</li>
+											}
+										</ul>
+									</div>
+								</div>
+							}
+						</div>
+					}
+				}
+			</div>
+		</div>
+	</div>
+</div>
+
+<div>
+	@{
+		var postPerPage = posts.Count() > 10 ? postsToView.Value : posts.Count();
+	}
+	Viewing posts @(postsToView.Key) to @postPerPage of a total of @posts.Count() posts.
+</div>
+
+@if (posts.Count() > 10)
+{
+	string prevPage = Url.Action("ViewBlog", new { @blogId = Model.Blog.Id, @from = ViewBag.Prev });
+	string nextPage = Url.Action("ViewBlog", new { @blogId = Model.Blog.Id, @from = ViewBag.Next });
+
+	<nav>
+        <ul class="pagination">
+			<li>
+				<a href="@prevPage" aria-label="Previous">
+					<span aria-hidden="true">&laquo;</span>
+				</a>
+			</li>
+
+			@{
+				var remainder = posts.Count() % postsToView.Value;
+				var pages = posts.Count() / postsToView.Value;
+
+				if (remainder > 0)
+				{
+					pages++;
+				}
+			}
+			@for (int i = 0; i < pages; i++)
+			{
+				string active = "";
+				if (Request.Params["from"] == (i * 10).ToString())
+				{
+					active = "active";
+				}
+
+				<li class="@active">
+					@Html.ActionLink((i + 1).ToString(), "ViewBlog", new { @blogId = Model.Blog.Id, @from = i * 10 }, null)
+				</li>
+			}
+
+			<li>
+				<a href="@nextPage" aria-label="Next">
+					<span aria-hidden="true">&raquo;</span>
+				</a>
+			</li>
+		</ul>
+	</nav>
+}
+@section scripts
+{
+	<script src="~/MyScripts/comments.js"></script>
+}

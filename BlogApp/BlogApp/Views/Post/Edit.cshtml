@@ -1,0 +1,43 @@
+﻿@model BlogApp.Models.Post
+
+@{
+	ViewBag.Title = "Edit";
+
+	/* Combine all tags into one string.
+	*/
+	var tags = "";
+	foreach (var tag in Model.Tags)
+	{
+		tags += tag.Name + " ";
+	}
+}
+
+@if(ViewBag.ErrorMessage != null)
+{
+	<p class="alert alert-danger">@ViewBag.ErrorMessage</p>
+}
+
+@using (Html.BeginForm("Edit", "Post", new { @postId = Model.Id }, FormMethod.Post))
+{
+	@Html.AntiForgeryToken()
+	@Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+	<div class="form-group">
+		<label class="control-label" for="title">Title</label>
+		<input type="text" class="form-control" id="title" name="title" placeholder="Title" value="@Model.Title" />
+	</div>
+
+	<div class="form-group">
+		<label class="control-label" for="body">Body text</label>
+		<textarea class="form-control" id="body" name="body" placeholder="Body text" rows="4">@Model.Body</textarea>
+	</div>
+
+	<div class="form-group">
+		<label class="control-label" for="tags">Tags</label>
+		<input type="text" class="form-control" id="tags" name="tags" placeholder="Tags" value="@tags" />
+	</div>
+
+	<div class="form-group">
+		<input type="submit" value="Save" class="btn btn-default" />
+	</div>
+}
